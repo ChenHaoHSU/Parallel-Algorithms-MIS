@@ -30,11 +30,13 @@ bool Checker::CheckIsIndependentSet(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges,
     const std::vector<int>& mis) {
+  // Mark the vertices in MIS
   std::vector<bool> marked(num_vertices, false);
   for (int v : mis) {
     marked[v] = true;
   }
 
+  // Check if each edge has at most one vertex marked (selected)
   bool valid = true;
   for (auto e : edges) {
     int v1 = e.first;
