@@ -21,6 +21,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(SRC
   src/main/main.cpp
   src/parser/parser.cpp
+  src/solver/solver.cpp
 )
 
 set(SRC_EXE

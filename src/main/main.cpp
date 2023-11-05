@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "src/parser/parser.h"
+#include "src/solver/solver.h"
 
 int main(int argc, char** argv) {
 
@@ -28,6 +29,10 @@ int main(int argc, char** argv) {
         << std::quoted(input_filename) << ".\n";
     return 2;
   }
+
+  // Run solver
+  ruby::Solver solver;
+  std::vector<int> mis = solver.Run(num_vertices, edges);
 
   return 0;
 }  // end main
