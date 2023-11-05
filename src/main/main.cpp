@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 
+#include "src/checker/checker.h"
 #include "src/parser/parser.h"
 #include "src/solver/solver.h"
 
@@ -33,6 +34,14 @@ int main(int argc, char** argv) {
   // Run solver
   ruby::Solver solver;
   std::vector<int> mis = solver.Run(num_vertices, edges);
+
+  // Check MIS
+  ruby::Checker checker;
+  if (!checker.Run(num_vertices, edges, mis)) {
+    std::cout << "[Error] MIS check: Fail...\n";
+  } else {
+    std::cout << "[Info] MIS check: Pass!!!\n";
+  }
 
   return 0;
 }  // end main

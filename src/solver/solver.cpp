@@ -11,7 +11,7 @@ std::vector<int> Solver::Run(int num_vertices,
   std::cout << "[Info] Start solving...\n"; 
 
   return {};
-}
-
+}  // End Solver::Run
 
 };  // namespace ruby
+

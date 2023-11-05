@@ -41,8 +41,5 @@ bool Parser::Read(std::string filename,
   return true;
 }  // Parser::Read
 
-
-
 };  // namespace ruby
-
 
