@@ -38,9 +38,7 @@ bool Checker::CheckIsIndependentSet(
 
   // Check if each edge has at most one vertex marked (selected)
   bool valid = true;
-  for (auto e : edges) {
-    int v1 = e.first;
-    int v2 = e.second;
+  for (auto &[v1, v2] : edges) {
     if (marked[v1] && marked[v2]) {
       valid = false;
       std::cout << "[Error] Checker: Vertices in edge "
@@ -58,9 +56,7 @@ bool Checker::CheckIsMaximal(
     const std::vector<int>& mis) {
   // Build the adjacency list
   std::vector<std::vector<int>> adj(num_vertices);
-  for (auto e : edges) {
-    int v1 = e.first;
-    int v2 = e.second;
+  for (auto &[v1, v2] : edges) {
     adj[v1].emplace_back(v2);
     adj[v2].emplace_back(v1);
   }
