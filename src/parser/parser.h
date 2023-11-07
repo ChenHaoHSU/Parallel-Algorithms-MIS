@@ -1,10 +1,10 @@
-#ifndef RUBY_PARSER_H_
-#define RUBY_PARSER_H_
+#ifndef LUBY_PARSER_H_
+#define LUBY_PARSER_H_
 
 #include <iostream>
 #include <vector>
 
-namespace ruby {
+namespace luby {
 
 class Parser {
  public:
@@ -18,7 +18,7 @@ class Parser {
 
 };  // class Parser
 
-}  // namespace ruby 
+}  // namespace luby
 
-#endif  // RUBY_PARSER_H_
+#endif  // LUBY_PARSER_H_
 

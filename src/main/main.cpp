@@ -10,7 +10,7 @@
 
 int main(int argc, char** argv) {
 
-  std::cout << "[Info] Hello, Ruby!\n";
+  std::cout << "[Info] Hello, Luby!\n";
 
   if (argc < 3) {
     std::cout << "Usage: " << argv[0] << " [input_file] [output_file]\n";
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
   std::vector<std::pair<int, int>> edges;
 
   // Read database from file
-  ruby::Parser parser;
+  luby::Parser parser;
   if (!parser.Read(input_filename, num_vertices, edges)) {
     std::cerr << "[Error] Fail to read "
         << std::quoted(input_filename) << ".\n";
@@ -32,11 +32,11 @@ int main(int argc, char** argv) {
   }
 
   // Run solver
-  ruby::Solver solver;
+  luby::Solver solver;
   std::vector<int> mis = solver.Run(num_vertices, edges);
 
   // Check MIS
-  ruby::Checker checker;
+  luby::Checker checker;
   if (!checker.Run(num_vertices, edges, mis)) {
     std::cout << "[Error] MIS check: Fail...\n";
   } else {

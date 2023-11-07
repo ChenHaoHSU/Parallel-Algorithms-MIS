@@ -3,7 +3,7 @@
 
 #include "src/checker/checker.h"
 
-namespace ruby {
+namespace luby {
 
 bool Checker::Run(
     int num_vertices,
@@ -86,5 +86,5 @@ bool Checker::CheckIsMaximal(
   return valid;
 }  // End Checker::CheckIsMaximal
 
-};  // namespace ruby
+}  // namespace luby
 

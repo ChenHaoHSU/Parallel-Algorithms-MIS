@@ -3,7 +3,7 @@
 
 #include "src/parser/parser.h"
 
-namespace ruby {
+namespace luby {
 
 bool Parser::Read(std::string filename,
                   int& num_vertices,
@@ -41,5 +41,5 @@ bool Parser::Read(std::string filename,
   return true;
 }  // Parser::Read
 
-};  // namespace ruby
+}  // namespace luby
 

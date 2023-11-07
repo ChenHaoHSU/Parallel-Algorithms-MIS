@@ -5,7 +5,7 @@
 
 #include "src/solver/solver.h"
 
-namespace ruby {
+namespace luby {
 
 std::vector<int> Solver::Run(int num_vertices,
                              const std::vector<std::pair<int, int>>& edges) {
@@ -31,7 +31,7 @@ void Solver::BuildAdj(
     adj_[v2].emplace_back(v1);
   }
 
-#ifdef RUBY_DEBUG
+#ifdef LUBY_DEBUG
   for (unsigned i = 0; i < adj_.size(); ++i) {
     std::cout << "[" << i << "]";
     for (auto nei : adj_[i]) {
@@ -39,7 +39,7 @@ void Solver::BuildAdj(
     }
     std::cout << "\n";
   }
-#endif  // RUBY_DEBUG
+#endif  // LUBY_DEBUG
 
 }  // End Solver::BuildAdj
 
@@ -76,5 +76,5 @@ std::vector<int> Solver::SequentialSolve(
   return mis;
 }  // End Solver::SequentialSolve
 
-};  // namespace ruby
+}  // namespace luby
 

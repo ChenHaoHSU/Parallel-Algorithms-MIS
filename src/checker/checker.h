@@ -1,10 +1,10 @@
-#ifndef RUBY_CHECKER_H_
-#define RUBY_CHECKER_H_
+#ifndef LUBY_CHECKER_H_
+#define LUBY_CHECKER_H_
 
 #include <iostream>
 #include <vector>
 
-namespace ruby {
+namespace luby {
 
 class Checker {
  public:
@@ -24,7 +24,7 @@ class Checker {
 
 };  // class Checker
 
-}  // namespace ruby 
+}  // namespace luby
 
-#endif  // RUBY_CHECKER_H_
+#endif  // LUBY_CHECKER_H_
 

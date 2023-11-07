@@ -1,10 +1,10 @@
-#ifndef RUBY_SOLVER_H_
-#define RUBY_SOLVER_H_
+#ifndef LUBY_SOLVER_H_
+#define LUBY_SOLVER_H_
 
 #include <iostream>
 #include <vector>
 
-namespace ruby {
+namespace luby {
 
 class Solver {
  public:
@@ -29,7 +29,7 @@ class Solver {
 
 };  // class Solver
 
-}  // namespace ruby 
+}  // namespace luby
 
-#endif  // RUBY_SOLVER_H_
+#endif  // LUBY_SOLVER_H_
 
