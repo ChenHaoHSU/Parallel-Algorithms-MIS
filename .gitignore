@@ -6,7 +6,9 @@ Makefile
 bin/
 
 *.in
-!input/*.in
+!input/1.in
+!input/2.in
+!input/3.in
 
 output/
 

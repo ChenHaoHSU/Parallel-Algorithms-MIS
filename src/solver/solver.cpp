@@ -1,7 +1,10 @@
 #include <algorithm>
 #include <iostream>
+#include <set>
 #include <utility>
 #include <vector>
+
+#include <cstdlib>
 
 #include "src/solver/solver.h"
 
@@ -15,6 +18,7 @@ std::vector<int> Solver::Run(int num_vertices,
   BuildAdj(num_vertices, edges);
 
   std::vector<int> mis = SequentialSolve(num_vertices, edges);
+  //std::vector<int> mis = SequentialLubySolve(num_vertices, edges);
   
   std::cout << "[Info] |MIS| = " << mis.size() << "\n";
 
@@ -43,9 +47,13 @@ void Solver::BuildAdj(
 
 }  // End Solver::BuildAdj
 
+/** Sequential greedy algorithm for MIS.
+ *  Sort all vertices by degree in the increasing order, and then select
+ *  vertices sequtentially if they can be added into an MIS.
+ */
 std::vector<int> Solver::SequentialSolve(
-      int num_vertices,
-      const std::vector<std::pair<int, int>>& edges) {
+    int num_vertices,
+    const std::vector<std::pair<int, int>>& edges) {
   std::vector<int> mis;
 
   // Sequential method 
@@ -75,6 +83,96 @@ std::vector<int> Solver::SequentialSolve(
 
   return mis;
 }  // End Solver::SequentialSolve
+
+std::vector<int> Solver::SequentialLubySolve(
+    int num_vertices,
+    const std::vector<std::pair<int, int>>& edges) {
+  std::srand(0);
+  // Status vector (true if in MIS)
+  std::vector<bool> S(num_vertices, false);
+
+  // Active vertices
+  std::set<int> G;
+  for (int i = 0; i < num_vertices; ++i) {
+    G.emplace(i);
+  }
+
+  // Adjacency list (set)
+  std::vector<std::set<int>> adj(num_vertices);
+  for (auto const& [v1, v2] : edges) {
+    adj[v1].emplace(v2);
+    adj[v2].emplace(v1);
+  }
+
+  // Marked
+  std::vector<int> marked(num_vertices, 0);
+
+  // Degree
+  std::vector<int> deg(num_vertices, 0);
+  for (auto const& [v1, v2] : edges) {
+    ++deg[v1];
+    ++deg[v2];
+  }
+
+  // Luby's algorithm starts here
+  int iteration = 0;
+  while (!G.empty()) {
+    ++iteration;
+    //std::cout << "Iteration " << iteration << "\n";
+
+    // X <- emptySet
+    std::set<int> X;
+
+    // foreach v in V(G)
+    for (int v : G) {
+      if (deg[v] == 0) {
+        X.emplace(v);
+      } else {
+        double x = ((double)std::rand() / (double)RAND_MAX);
+        double prob = ((double)1.0 / (double)(2 * deg[v]));
+        if (x < prob) {
+          X.emplace(v);
+        }
+      }
+    }
+    
+    // foreach unordered pair (v, w) in X x X
+    for (int v : X) {
+      for (int nei : adj.at(v)) {
+        if (X.count(nei) > 0) {
+          if (deg[v] < deg[nei]) {
+            marked[v] = iteration;
+          } else if (deg[v] == deg[nei] && v < nei) {
+            marked[v] = iteration;
+          }
+        }
+      }
+    }
+
+    // S <- S U X
+    // Y <- X U deg(X)
+    // G <- G|V(G)\Y
+    for (int v : X) {
+      if (marked.at(v) != iteration) {
+        S[v] = true;
+        for (int nei : adj.at(v)) {
+          --deg[nei];
+          G.erase(nei);
+        }
+        G.erase(v);
+      }
+    }
+  }
+
+  // Collect MIS from status
+  std::vector<int> mis;
+  for (int i = 0, n = S.size(); i < n; ++i) {
+    if (S.at(i))
+      mis.emplace_back(i);
+  }
+
+  return mis;
+}  // End Solver::SequentialLubySolve
 
 }  // namespace luby
 

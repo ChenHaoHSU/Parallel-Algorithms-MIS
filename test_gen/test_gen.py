@@ -6,15 +6,17 @@ def gen_mis(filename, num_vertices, num_edges):
     print(f'[Info] #Vertices: {num_vertices}')
     print(f'[Info] #Edges: {num_edges}')
 
-    edges = []
-    for i in range(num_vertices):
-        for j in range(i + 1, num_vertices):
-            edges.append((i, j))
-
-    random.shuffle(edges) 
-    edges = edges[:num_edges]
-    assert len(edges) == num_edges
-
+    edges = set()
+    while len(edges) < num_edges:
+        v1 = random.randint(0, num_vertices - 1)
+        v2 = random.randint(0, num_vertices - 1)
+        if v1 == v2:
+            continue
+        if v1 > v2:
+            v1, v2 = v2, v1
+        if (v1, v2) not in edges:
+            edges.add((v1, v2))
+        
     with open(filename, 'w') as fout:
         fout.write(f'{num_vertices}\n')
         fout.write(f'{num_edges}\n')
