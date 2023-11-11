@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 
+#include <omp.h>
+
 #include "src/checker/checker.h"
 
 namespace luby {
@@ -9,6 +11,8 @@ bool Checker::Run(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges,
     const std::vector<int>& mis) {
+  std::cout << "[Info] Checking result...\n";
+  std::cout << "[Info] |MPS| = " << mis.size() << "\n";
   bool valid = true;
 
   // Check if it is an independent set
@@ -32,12 +36,14 @@ bool Checker::CheckIsIndependentSet(
     const std::vector<int>& mis) {
   // Mark the vertices in MIS
   std::vector<bool> marked(num_vertices, false);
+#pragma omp parallel for
   for (int v : mis) {
     marked[v] = true;
   }
 
   // Check if each edge has at most one vertex marked (selected)
   bool valid = true;
+#pragma omp parallel for
   for (auto &[v1, v2] : edges) {
     if (marked[v1] && marked[v2]) {
       valid = false;
@@ -79,7 +85,8 @@ bool Checker::CheckIsMaximal(
   for (int i = 0; i < num_vertices; ++i) {
     if (!marked[i]) {
       valid = false;
-      std::cout << "[Error] Checker: vertex " << i << " can be added. Not maximal.\n";
+      std::cout << "[Error] Checker: vertex " << i
+          << " can be added. Not maximal.\n";
     }
   }
 
