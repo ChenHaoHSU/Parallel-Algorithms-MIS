@@ -26,6 +26,9 @@ class Solver {
   std::vector<int> SequentialLubySolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges);
+  std::vector<int> ParallelLubySolve(
+      int num_vertices,
+      const std::vector<std::pair<int, int>>& edges);
 
  private:
   std::vector<std::vector<int>> adj_;
