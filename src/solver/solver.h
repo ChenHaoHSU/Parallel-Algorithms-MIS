@@ -14,13 +14,11 @@ class Solver {
  public:
   std::vector<int> Run(
       int num_vertices,
-      const std::vector<std::pair<int, int>>& edges);
+      const std::vector<std::pair<int, int>>& edges,
+      std::string alg = "SeqGreedy");
 
  private:
-  void BuildAdj(
-      int num_vertices,
-      const std::vector<std::pair<int, int>>& edges);
-  std::vector<int> SequentialSolve(
+  std::vector<int> SequentialGreedySolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges);
   std::vector<int> SequentialLubySolve(
@@ -29,10 +27,6 @@ class Solver {
   std::vector<int> ParallelLubySolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges);
-
- private:
-  std::vector<std::vector<int>> adj_;
-
 };  // class Solver
 
 }  // namespace luby
