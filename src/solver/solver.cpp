@@ -30,6 +30,8 @@ std::vector<int> Solver::Run(int num_vertices,
     mis = SequentialLubySolve(num_vertices, edges);
   } else if (alg == "ParLuby") {
     mis = ParallelLubySolve(num_vertices, edges);
+  } else if (alg == "SeqRoot") {
+    mis = SequentialRootBasedSolve(num_vertices, edges);
   } else {
     std::cerr << "[Error] Unknown algorithm mode " << std::quoted(alg) << "\n";
     return {};
@@ -305,6 +307,103 @@ std::vector<int> Solver::ParallelLubySolve(
 
   return mis;
 }  // End Solver::ParallelLubySolve
+
+std::vector<int> Solver::SequentialRootBasedSolve(
+      int num_vertices,
+      const std::vector<std::pair<int, int>>& edges) {
+  std::vector<int> mis;
+
+  std::vector<int> priority_list(num_vertices);
+  std::vector<int> permuted_indices(num_vertices);  
+
+  // Generate a random permutation of the vertices
+  std::generate(permuted_indices.begin(), permuted_indices.end(),
+                [i = 0]() mutable { return i++; });
+  std::random_shuffle(permuted_indices.begin(), permuted_indices.end());
+
+  // Adjacency list (set)
+  std::vector<std::set<int>> adj(num_vertices);
+  for (auto const& [v1, v2] : edges) {
+    adj[v1].emplace(v2);
+    adj[v2].emplace(v1);
+  }
+
+  // #pragma omp parallel for 
+  for (int i = 0; i < num_vertices; ++i) {
+    int my_priority = permuted_indices[i];
+    int count_nbrs_before_me = 0;
+    // iterate through all neighbors of i
+    for (auto nei : adj[i]) {
+      if (permuted_indices[nei] < my_priority) {
+        ++count_nbrs_before_me;
+      }
+    }
+    priority_list[i] = count_nbrs_before_me;
+  }
+
+  // compute the initial root
+  std::vector<int> roots;
+  auto zero_f = [&](int i) { return priority_list[i] == 0; };
+
+  // #pragma omp parallel for
+  for(int i = 0; i < num_vertices; ++i) {
+    if (zero_f(i)) {
+      roots.emplace_back(i);
+    }
+  }
+
+  // recursively compute the MIS
+  std::vector<bool> is_mis(num_vertices, false);
+  int finished = 0;
+  int round = 0;
+
+  while (finished != num_vertices){
+    // while(round < 10){
+    std::vector<int> removed;
+    // add roots to the MIS, and remove the nbrs of roots from the graph
+    // #pragma omp parallel for 
+    for (auto root: roots) {
+      is_mis[root] = true;
+      for (auto nei : adj[root]) {
+        if (priority_list[nei] > 0) {
+          priority_list[nei] = 0;
+          removed.emplace_back(nei);
+        }
+      }
+    }
+
+    // compute new roots
+    std::vector<int> new_roots;
+    // #pragma omp parallel for 
+    for (auto u : removed) {
+      for (auto v: adj[u]){
+         if ( permuted_indices[v] > permuted_indices[u] ) {
+          priority_list[v]-=1;
+          if (priority_list[v] == 0) {
+            new_roots.emplace_back(v);
+          }
+        }
+      }
+    }
+    
+    finished += roots.size();
+    finished += removed.size();
+          
+    roots = std::move(new_roots);
+    ++round;
+
+  }
+
+  // # pragma omp parallel for 
+  for (int i = 0; i < num_vertices; ++i) {
+    if (is_mis[i]) {
+      mis.emplace_back(i);
+    }
+  }
+
+  return mis;
+}
+
 
 }  // namespace luby
 

@@ -27,6 +27,10 @@ class Solver {
   std::vector<int> ParallelLubySolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges);
+  std::vector<int> SequentialRootBasedSolve(
+      int num_vertices,
+      const std::vector<std::pair<int, int>>& edges);
+
 };  // class Solver
 
 }  // namespace luby
