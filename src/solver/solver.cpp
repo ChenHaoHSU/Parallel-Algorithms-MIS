@@ -534,7 +534,11 @@ std::vector<int> Solver::ParallelRootBasedSolve(
       }
     }
 
-    done = true;
+    #pragma omp single 
+    {
+      done = true;
+    }
+
     #pragma omp parallel for 
     for (int v = 0; v < num_vertices; ++v) {
       if (roots[v] == round + 1) {
