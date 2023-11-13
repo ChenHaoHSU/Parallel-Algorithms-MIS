@@ -30,6 +30,9 @@ class Solver {
   std::vector<int> SequentialRootBasedSolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges);
+  std::vector<int> ParallelRootBasedSolve(
+      int num_vertices,
+      const std::vector<std::pair<int, int>>& edges);
 
 };  // class Solver
 

@@ -32,6 +32,8 @@ std::vector<int> Solver::Run(int num_vertices,
     mis = ParallelLubySolve(num_vertices, edges);
   } else if (alg == "SeqRoot") {
     mis = SequentialRootBasedSolve(num_vertices, edges);
+  } else if (alg == "ParRoot") {
+    mis = ParallelRootBasedSolve(num_vertices, edges);
   } else {
     std::cerr << "[Error] Unknown algorithm mode " << std::quoted(alg) << "\n";
     return {};
@@ -357,6 +359,7 @@ std::vector<int> Solver::SequentialRootBasedSolve(
   int finished = 0;
   int round = 0;
 
+  auto start = std::chrono::high_resolution_clock::now();
   while (finished != num_vertices){
     // while(round < 10){
     std::vector<int> removed;
@@ -391,8 +394,13 @@ std::vector<int> Solver::SequentialRootBasedSolve(
           
     roots = std::move(new_roots);
     ++round;
-
   }
+
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
+  std::cout << "[Info] Rounds: " << round << "\n";
 
   // # pragma omp parallel for 
   for (int i = 0; i < num_vertices; ++i) {
@@ -402,7 +410,124 @@ std::vector<int> Solver::SequentialRootBasedSolve(
   }
 
   return mis;
-}
+}  // End Solver::SequentialRootBasedSolve
+
+std::vector<int> Solver::ParallelRootBasedSolve(
+      int num_vertices,
+      const std::vector<std::pair<int, int>>& edges) {
+  std::vector<int> mis;
+
+  std::vector<int> priority_list(num_vertices);
+  std::vector<int> permuted_indices(num_vertices);  
+
+  // Generate a random permutation of the vertices
+  std::generate(permuted_indices.begin(), permuted_indices.end(),
+                [i = 0]() mutable { return i++; });
+  std::random_shuffle(permuted_indices.begin(), permuted_indices.end());
+
+  // Adjacency list (set)
+  std::vector<std::set<int>> adj(num_vertices);
+  for (auto const& [v1, v2] : edges) {
+    adj[v1].emplace(v2);
+    adj[v2].emplace(v1);
+  }
+
+  #pragma omp parallel for 
+  for (int i = 0; i < num_vertices; ++i) {
+    int my_priority = permuted_indices[i];
+    int count_nbrs_before_me = 0;
+    // iterate through all neighbors of i
+    for (auto nei : adj[i]) {
+      if (permuted_indices[nei] < my_priority) {
+        ++count_nbrs_before_me;
+      }
+    }
+    priority_list[i] = count_nbrs_before_me;
+  }
+
+  // compute the initial root
+  std::vector<int> roots(num_vertices, 0);
+
+  #pragma omp parallel for
+  for(int i = 0; i < num_vertices; ++i) {
+    int priority_i;
+    priority_i = priority_list[i];
+    if (priority_i == 0) {
+      roots[i] = 1;
+    }
+  }
+
+  std::vector<int> removed(num_vertices, 0);
+  
+  // recursively compute the MIS
+  std::vector<bool> is_mis(num_vertices, false);
+
+  auto start = std::chrono::high_resolution_clock::now();
+  
+  int round = 0;
+  bool done = false;
+  while (!done){
+    round++;
+
+    std::cout << "Round " << round << "\n";
+    // while(round < 10){
+    // add roots to the MIS, and remove the nbrs of roots from the graph
+    #pragma omp parallel for 
+    for (int v = 0; v < num_vertices; ++v) {
+      if (roots[v] == round) {
+        is_mis[v] = true;
+      }
+    }
+    #pragma omp parallel for 
+    for (int v = 0; v < num_vertices; ++v) {
+      if (priority_list[v] > 0) {
+        for (auto nei : adj[v]) {
+          if (roots[nei] == round && removed[v] != round) {
+            priority_list[v] = 0;
+            removed[v] = round;
+          }
+        }
+      }
+    }
+
+    #pragma omp parallel for 
+    for (int v = 0; v < num_vertices; ++v) {
+      for (auto nei : adj[v]){
+        if (removed[nei] == round) {
+          if (permuted_indices[v] > permuted_indices[nei]) {
+            priority_list[v] -= 1;
+            if (priority_list[v] == 0) {
+              roots[v] = round + 1;
+            }
+          }
+        }
+      }
+    }
+
+    done = true;
+    #pragma omp parallel for 
+    for (int v = 0; v < num_vertices; ++v) {
+      if (roots[v] == round + 1) {
+        done = false;
+      }
+    }
+  }
+  
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
+  std::cout << "[Info] Rounds: " << round << "\n";
+
+  // # pragma omp parallel for 
+  for (int i = 0; i < num_vertices; ++i) {
+    if (is_mis[i]) {
+      mis.emplace_back(i);
+    }
+  }
+
+  return mis;
+}  // End Solver::ParallelRootBasedSolve
 
 
 }  // namespace luby
