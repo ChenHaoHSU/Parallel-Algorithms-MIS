@@ -124,6 +124,8 @@ std::vector<int> Solver::SequentialLubySolve(
     ++deg[v2];
   }
 
+  auto start = std::chrono::high_resolution_clock::now();
+
   // Luby's algorithm starts here
   int iteration = 0;
   while (!G.empty()) {
@@ -174,6 +176,12 @@ std::vector<int> Solver::SequentialLubySolve(
     }
   }
 
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
+  std::cout << "[Info] Iteration: " << iteration << "\n";
+
   // Collect MIS from status
   std::vector<int> mis;
   for (int i = 0, n = S.size(); i < n; ++i) {
@@ -216,10 +224,11 @@ std::vector<int> Solver::ParallelLubySolve(
 
   // Luby's algorithm starts here
   int iteration = 0;
-  int num_active = num_vertices;
-  
+  bool done = false;
+
   auto start = std::chrono::high_resolution_clock::now();
-  while (num_active > 0) {
+
+  while (!done) {
      ++iteration;
     //std::cout << "Iteration " << iteration << "\n";
 
@@ -242,31 +251,29 @@ std::vector<int> Solver::ParallelLubySolve(
     }  // End for v = 0..n-1
     
     // foreach unordered pair (v, w) in X x X
-    {
-      #pragma omp parallel for default(shared)
-      for (int v = 0; v < num_vertices; ++v) {
-        int x_v;
-        #pragma omp atomic read
-        x_v = X[v];
-        if (x_v == iteration) {
-          #pragma omp parallel for
-          for (int nei : adj.at(v)) {
-            int x_nei;
+    #pragma omp parallel for default(shared)
+    for (int v = 0; v < num_vertices; ++v) {
+      int x_v;
+      //#pragma omp atomic read
+      x_v = X[v];
+      if (x_v == iteration) {
+        #pragma omp parallel for
+        for (int nei : adj.at(v)) {
+          int x_nei;
+          #pragma omp atomic read
+          x_nei = X[nei];
+          if (x_nei == iteration) {
+            int deg_v, deg_nei;
             #pragma omp atomic read
-            x_nei = X[nei];
-            if (x_nei == iteration) {
-              int deg_v, deg_nei;
-              #pragma omp atomic read
-              deg_v = deg[v];
-              #pragma omp atomic read
-              deg_nei = deg[nei];
-              if (deg_v < deg_nei) {
-                #pragma omp atomic write
-                marked[v] = iteration;
-              } else if (deg_v == deg_nei && v < nei) {
-                #pragma omp atomic write
-                marked[v] = iteration;
-              }
+            deg_v = deg[v];
+            #pragma omp atomic read
+            deg_nei = deg[nei];
+            if (deg_v < deg_nei) {
+              #pragma omp atomic write
+              marked[v] = iteration;
+            } else if (deg_v == deg_nei && v < nei) {
+              #pragma omp atomic write
+              marked[v] = iteration;
             }
           }
         }
@@ -276,21 +283,44 @@ std::vector<int> Solver::ParallelLubySolve(
     // S <- S U X
     // Y <- X U deg(X)
     // G <- G|V(G)\Y
+    #pragma omp parallel for default(shared)
     for (int v = 0; v < num_vertices; ++v) {
-      if (X.at(v) == iteration && marked.at(v) != iteration) {
-        S[v] = true;
-        for (int nei : adj.at(v)) {
-          --deg[nei];
-          if (G[nei]) {
-            G[nei] = false;
-            --num_active;
-          }
-        }
-        if (G[v]) {
+      if (G[v]) {
+        int x_v;
+        int marked_v;
+        #pragma omp atomic read
+        x_v = X[v];
+        #pragma omp atomic read
+        marked_v = marked[v];
+
+        if (x_v == iteration && marked_v != iteration) {
+          S[v] = true;
           G[v] = false;
-          --num_active;
         }
       }
+    }
+    
+    #pragma omp parallel for default(shared)
+    for (int v = 0; v < num_vertices; ++v) {
+      if (G[v]) {
+        for (int nei : adj[v]) {
+          if (X[nei] == iteration && marked[nei] != iteration) {
+            --deg[v];
+            G[v] = false;
+          }
+        }
+      }
+    }
+   
+    #pragma omp single
+    {
+      done = true;
+    }
+
+    #pragma omp parallel for default(shared)
+    for (int v = 0; v < num_vertices; ++v) {
+      if (G[v])
+        done = false;
     }
   }
   
