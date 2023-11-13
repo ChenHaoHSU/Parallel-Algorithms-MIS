@@ -217,18 +217,20 @@ std::vector<int> Solver::ParallelLubySolve(
   auto start = std::chrono::high_resolution_clock::now();
   while (num_active > 0) {
      ++iteration;
-    std::cout << "Iteration " << iteration << "\n";
+    //std::cout << "Iteration " << iteration << "\n";
 
     // foreach v in V(G)
-#pragma omp parallel for
+    #pragma omp parallel for default(shared)
     for (int v = 0; v < num_vertices; ++v) {
       if (G.at(v)) {
         if (deg[v] == 0) {
+          #pragma omp atomic write
           X[v] = iteration;
         } else {
           double x = ((double)std::rand() / (double)RAND_MAX);
           double prob = ((double)1.0 / (double)(2 * deg[v]));
           if (x < prob) {
+            #pragma omp atomic write
             X[v] = iteration;
           }
         }
@@ -236,16 +238,31 @@ std::vector<int> Solver::ParallelLubySolve(
     }  // End for v = 0..n-1
     
     // foreach unordered pair (v, w) in X x X
-#pragma omp parallel for
-    for (int v = 0; v < num_vertices; ++v) {
-      if (X[v] == iteration) {
-#pragma omp parallel for
-        for (int nei : adj.at(v)) {
-          if (X.at(nei) == iteration) {
-            if (deg[v] < deg[nei]) {
-              marked[v] = iteration;
-            } else if (deg[v] == deg[nei] && v < nei) {
-              marked[v] = iteration;
+    {
+      #pragma omp parallel for default(shared)
+      for (int v = 0; v < num_vertices; ++v) {
+        int x_v;
+        #pragma omp atomic read
+        x_v = X[v];
+        if (x_v == iteration) {
+          #pragma omp parallel for
+          for (int nei : adj.at(v)) {
+            int x_nei;
+            #pragma omp atomic read
+            x_nei = X[nei];
+            if (x_nei == iteration) {
+              int deg_v, deg_nei;
+              #pragma omp atomic read
+              deg_v = deg[v];
+              #pragma omp atomic read
+              deg_nei = deg[nei];
+              if (deg_v < deg_nei) {
+                #pragma omp atomic write
+                marked[v] = iteration;
+              } else if (deg_v == deg_nei && v < nei) {
+                #pragma omp atomic write
+                marked[v] = iteration;
+              }
             }
           }
         }
@@ -277,6 +294,7 @@ std::vector<int> Solver::ParallelLubySolve(
   auto duration =
     std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
   std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
+  std::cout << "[Info] Iteration: " << iteration << "\n";
 
   // Collect MIS from status
   std::vector<int> mis;
