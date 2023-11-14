@@ -19,7 +19,7 @@ std::vector<int> Solver::Run(int num_vertices,
                              std::string alg) {
   std::cout << "[Info] Algorithm: " << alg << "\n";
   std::cout << "[Info] Start solving...\n";
-  
+
   // Fix random seed
   std::srand(0);
   
@@ -237,13 +237,11 @@ std::vector<int> Solver::ParallelLubySolve(
     for (int v = 0; v < num_vertices; ++v) {
       if (G.at(v)) {
         if (deg[v] == 0) {
-          #pragma omp atomic write
           X[v] = iteration;
         } else {
           double x = ((double)std::rand() / (double)RAND_MAX);
           double prob = ((double)1.0 / (double)(2 * deg[v]));
           if (x < prob) {
-            #pragma omp atomic write
             X[v] = iteration;
           }
         }
@@ -260,19 +258,14 @@ std::vector<int> Solver::ParallelLubySolve(
         #pragma omp parallel for
         for (int nei : adj.at(v)) {
           int x_nei;
-          #pragma omp atomic read
           x_nei = X[nei];
           if (x_nei == iteration) {
             int deg_v, deg_nei;
-            #pragma omp atomic read
             deg_v = deg[v];
-            #pragma omp atomic read
             deg_nei = deg[nei];
             if (deg_v < deg_nei) {
-              #pragma omp atomic write
               marked[v] = iteration;
             } else if (deg_v == deg_nei && v < nei) {
-              #pragma omp atomic write
               marked[v] = iteration;
             }
           }
@@ -288,9 +281,7 @@ std::vector<int> Solver::ParallelLubySolve(
       if (G[v]) {
         int x_v;
         int marked_v;
-        #pragma omp atomic read
         x_v = X[v];
-        #pragma omp atomic read
         marked_v = marked[v];
 
         if (x_v == iteration && marked_v != iteration) {
@@ -500,7 +491,6 @@ std::vector<int> Solver::ParallelRootBasedSolve(
     round++;
 
     std::cout << "Round " << round << "\n";
-    // while(round < 10){
     // add roots to the MIS, and remove the nbrs of roots from the graph
     #pragma omp parallel for 
     for (int v = 0; v < num_vertices; ++v) {
@@ -520,12 +510,12 @@ std::vector<int> Solver::ParallelRootBasedSolve(
       }
     }
 
-    #pragma omp parallel for 
+    #pragma omp parallel for
     for (int v = 0; v < num_vertices; ++v) {
       for (auto nei : adj[v]){
         if (removed[nei] == round) {
           if (permuted_indices[v] > permuted_indices[nei]) {
-            priority_list[v] -= 1;
+            priority_list[v] = priority_list[v] - 1;
             if (priority_list[v] == 0) {
               roots[v] = round + 1;
             }
