@@ -64,10 +64,10 @@ std::vector<int> Solver::SequentialGreedySolve(
   std::vector<int> sorted_indices(num_vertices);
   std::generate(sorted_indices.begin(), sorted_indices.end(),
                 [i = 0]() mutable { return i++; });
-  std::stable_sort(sorted_indices.begin(), sorted_indices.end(),
-                   [&] (int lhs, int rhs) {
-                     return adj[lhs].size() < adj[rhs].size();
-                   });
+  //std::stable_sort(sorted_indices.begin(), sorted_indices.end(),
+                   //[&] (int lhs, int rhs) {
+                     //return adj[lhs].size() < adj[rhs].size();
+                   //});
 
   auto start = std::chrono::high_resolution_clock::now();
   
