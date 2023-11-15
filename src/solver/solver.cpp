@@ -103,6 +103,8 @@ std::vector<int> Solver::SequentialGreedySolve(
 std::vector<int> Solver::LubySolve(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges) {
+  auto start1 = std::chrono::high_resolution_clock::now();
+
   // Status vector (true if in MIS)
   std::vector<bool> S(num_vertices, false);
 
@@ -134,7 +136,7 @@ std::vector<int> Solver::LubySolve(
   int iteration = 0;
   bool done = false;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  auto start2 = std::chrono::high_resolution_clock::now();
 
   while (!done) {
      ++iteration;
@@ -224,9 +226,12 @@ std::vector<int> Solver::LubySolve(
   }
   
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
+  auto duration1 =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start1);
+  auto duration2 =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start2);
+  std::cout << "[Info] Runtime1: " << duration1.count() << " ms.\n";
+  std::cout << "[Info] Runtime2: " << duration2.count() << " ms.\n";
   std::cout << "[Info] Iteration: " << iteration << "\n";
 
   // Collect MIS from status
@@ -242,7 +247,7 @@ std::vector<int> Solver::LubySolve(
 std::vector<int> Solver::BlellochSolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges) {
-  std::vector<int> mis;
+  auto start1 = std::chrono::high_resolution_clock::now();
 
   std::vector<int> priority_list(num_vertices);
   std::vector<int> permuted_indices(num_vertices);  
@@ -289,18 +294,18 @@ std::vector<int> Solver::BlellochSolve(
   // recursively compute the MIS
   std::vector<bool> is_mis(num_vertices, false);
 
-  auto start = std::chrono::high_resolution_clock::now();
+  auto start2 = std::chrono::high_resolution_clock::now();
   
-  int round = 0;
+  int iteration = 0;
   bool done = false;
   while (!done){
-    round++;
+    iteration++;
+    //std::cout << "Iteration " << iteration << "\n";
 
-    std::cout << "Round " << round << "\n";
     // add roots to the MIS, and remove the nbrs of roots from the graph
     #pragma omp parallel for 
     for (int v = 0; v < num_vertices; ++v) {
-      if (roots[v] == round) {
+      if (roots[v] == iteration) {
         is_mis[v] = true;
       }
     }
@@ -308,9 +313,9 @@ std::vector<int> Solver::BlellochSolve(
     for (int v = 0; v < num_vertices; ++v) {
       if (priority_list[v] > 0) {
         for (auto nei : adj[v]) {
-          if (roots[nei] == round && removed[v] != round) {
+          if (roots[nei] == iteration && removed[v] != iteration) {
             priority_list[v] = 0;
-            removed[v] = round;
+            removed[v] = iteration;
           }
         }
       }
@@ -319,11 +324,11 @@ std::vector<int> Solver::BlellochSolve(
     #pragma omp parallel for
     for (int v = 0; v < num_vertices; ++v) {
       for (auto nei : adj[v]){
-        if (removed[nei] == round) {
+        if (removed[nei] == iteration) {
           if (permuted_indices[v] > permuted_indices[nei]) {
             priority_list[v] = priority_list[v] - 1;
             if (priority_list[v] == 0) {
-              roots[v] = round + 1;
+              roots[v] = iteration + 1;
             }
           }
         }
@@ -337,19 +342,23 @@ std::vector<int> Solver::BlellochSolve(
 
     #pragma omp parallel for 
     for (int v = 0; v < num_vertices; ++v) {
-      if (roots[v] == round + 1) {
+      if (roots[v] == iteration + 1) {
         done = false;
       }
     }
   }
   
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
-  std::cout << "[Info] Rounds: " << round << "\n";
+  auto duration1 =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start1);
+  auto duration2 =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start2);
+  std::cout << "[Info] Runtime1: " << duration1.count() << " ms.\n";
+  std::cout << "[Info] Runtime2: " << duration2.count() << " ms.\n";
+  std::cout << "[Info] Iterations: " << iteration << "\n";
 
-  // # pragma omp parallel for 
+  // Collect MIS from status
+  std::vector<int> mis;
   for (int i = 0; i < num_vertices; ++i) {
     if (is_mis[i]) {
       mis.emplace_back(i);
