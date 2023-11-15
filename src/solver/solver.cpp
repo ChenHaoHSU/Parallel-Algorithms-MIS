@@ -55,6 +55,9 @@ std::vector<int> Solver::Run(int num_vertices,
 std::vector<int> Solver::SequentialGreedySolve(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges) {
+  
+  auto start = std::chrono::high_resolution_clock::now();
+  
   // Build adjaceny list
   std::vector<std::vector<int>> adj(num_vertices);
   for (auto &[v1, v2] : edges) {
@@ -73,8 +76,6 @@ std::vector<int> Solver::SequentialGreedySolve(
                      //return adj[lhs].size() < adj[rhs].size();
                    //});
 
-  auto start = std::chrono::high_resolution_clock::now();
-  
   // Iterate through all vertices in the sorted order
   std::vector<bool> marked(num_vertices, false);
   for (int i : sorted_indices) {
