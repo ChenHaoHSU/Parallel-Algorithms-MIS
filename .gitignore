@@ -10,5 +10,8 @@ bin/
 !input/2.in
 !input/3.in
 
+input/input9.txt
+input/input10.txt
+
 output/
 
