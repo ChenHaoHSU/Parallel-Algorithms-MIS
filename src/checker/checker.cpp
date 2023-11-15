@@ -12,7 +12,6 @@ bool Checker::Run(
     const std::vector<std::pair<int, int>>& edges,
     const std::vector<int>& mis) {
   std::cout << "[Info] Checking result...\n";
-  std::cout << "[Info] |MPS| = " << mis.size() << "\n";
   bool valid = true;
 
   // Check if it is an independent set

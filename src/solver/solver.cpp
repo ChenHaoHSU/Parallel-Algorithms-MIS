@@ -16,29 +16,33 @@ namespace luby {
 
 std::vector<int> Solver::Run(int num_vertices,
                              const std::vector<std::pair<int, int>>& edges,
-                             std::string alg) {
+                             std::string alg,
+                             int num_threads) {
+  // Print info
   std::cout << "[Info] Algorithm: " << alg << "\n";
+  std::cout << "[Info] Number of threads: " << num_threads << "\n";
   std::cout << "[Info] Start solving...\n";
+
+  // Set number of threads use in omp
+  omp_set_num_threads(num_threads);
 
   // Fix random seed
   std::srand(0);
-  
+ 
+  // Solve by the specified algorithm
   std::vector<int> mis;
   if (alg == "SeqGreedy") {
     mis = SequentialGreedySolve(num_vertices, edges);
-  } else if (alg == "SeqLuby") {
-    mis = SequentialLubySolve(num_vertices, edges);
-  } else if (alg == "ParLuby") {
-    mis = ParallelLubySolve(num_vertices, edges);
-  } else if (alg == "SeqRoot") {
-    mis = SequentialRootBasedSolve(num_vertices, edges);
-  } else if (alg == "ParRoot") {
-    mis = ParallelRootBasedSolve(num_vertices, edges);
+  } else if (alg == "Luby") {
+    mis = LubySolve(num_vertices, edges);
+  } else if (alg == "Blelloch") {
+    mis = BlellochSolve(num_vertices, edges);
   } else {
     std::cerr << "[Error] Unknown algorithm mode " << std::quoted(alg) << "\n";
     return {};
   }
-  
+
+  // Print the size of MIS
   std::cout << "[Info] |MIS| = " << mis.size() << "\n";
 
   return mis;
@@ -95,104 +99,7 @@ std::vector<int> Solver::SequentialGreedySolve(
   return mis;
 }  // End Solver::SequentialGreedySolve
 
-std::vector<int> Solver::SequentialLubySolve(
-    int num_vertices,
-    const std::vector<std::pair<int, int>>& edges) {
-  // Status vector (true if in MIS)
-  std::vector<bool> S(num_vertices, false);
-
-  // Active vertices
-  std::set<int> G;
-  for (int i = 0; i < num_vertices; ++i) {
-    G.emplace(i);
-  }
-
-  // Adjacency list (set)
-  std::vector<std::set<int>> adj(num_vertices);
-  for (auto const& [v1, v2] : edges) {
-    adj[v1].emplace(v2);
-    adj[v2].emplace(v1);
-  }
-
-  // Marked
-  std::vector<int> marked(num_vertices, 0);
-
-  // Degree
-  std::vector<int> deg(num_vertices, 0);
-  for (auto const& [v1, v2] : edges) {
-    ++deg[v1];
-    ++deg[v2];
-  }
-
-  auto start = std::chrono::high_resolution_clock::now();
-
-  // Luby's algorithm starts here
-  int iteration = 0;
-  while (!G.empty()) {
-    ++iteration;
-    //std::cout << "Iteration " << iteration << "\n";
-
-    // X <- emptySet
-    std::set<int> X;
-
-    // foreach v in V(G)
-    for (int v : G) {
-      if (deg[v] == 0) {
-        X.emplace(v);
-      } else {
-        double x = ((double)std::rand() / (double)RAND_MAX);
-        double prob = ((double)1.0 / (double)(2 * deg[v]));
-        if (x < prob) {
-          X.emplace(v);
-        }
-      }
-    }
-    
-    // foreach unordered pair (v, w) in X x X
-    for (int v : X) {
-      for (int nei : adj.at(v)) {
-        if (X.count(nei) > 0) {
-          if (deg[v] < deg[nei]) {
-            marked[v] = iteration;
-          } else if (deg[v] == deg[nei] && v < nei) {
-            marked[v] = iteration;
-          }
-        }
-      }
-    }
-
-    // S <- S U X
-    // Y <- X U deg(X)
-    // G <- G|V(G)\Y
-    for (int v : X) {
-      if (marked.at(v) != iteration) {
-        S[v] = true;
-        for (int nei : adj.at(v)) {
-          --deg[nei];
-          G.erase(nei);
-        }
-        G.erase(v);
-      }
-    }
-  }
-
-  auto stop = std::chrono::high_resolution_clock::now();
-  auto duration =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
-  std::cout << "[Info] Iteration: " << iteration << "\n";
-
-  // Collect MIS from status
-  std::vector<int> mis;
-  for (int i = 0, n = S.size(); i < n; ++i) {
-    if (S.at(i))
-      mis.emplace_back(i);
-  }
-
-  return mis;
-}  // End Solver::SequentialLubySolve
-
-std::vector<int> Solver::ParallelLubySolve(
+std::vector<int> Solver::LubySolve(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges) {
   // Status vector (true if in MIS)
@@ -329,111 +236,9 @@ std::vector<int> Solver::ParallelLubySolve(
   }
 
   return mis;
-}  // End Solver::ParallelLubySolve
+}  // End Solver::LubySolve
 
-std::vector<int> Solver::SequentialRootBasedSolve(
-      int num_vertices,
-      const std::vector<std::pair<int, int>>& edges) {
-  std::vector<int> mis;
-
-  std::vector<int> priority_list(num_vertices);
-  std::vector<int> permuted_indices(num_vertices);  
-
-  // Generate a random permutation of the vertices
-  std::generate(permuted_indices.begin(), permuted_indices.end(),
-                [i = 0]() mutable { return i++; });
-  std::random_shuffle(permuted_indices.begin(), permuted_indices.end());
-
-  // Adjacency list (set)
-  std::vector<std::set<int>> adj(num_vertices);
-  for (auto const& [v1, v2] : edges) {
-    adj[v1].emplace(v2);
-    adj[v2].emplace(v1);
-  }
-
-  // #pragma omp parallel for 
-  for (int i = 0; i < num_vertices; ++i) {
-    int my_priority = permuted_indices[i];
-    int count_nbrs_before_me = 0;
-    // iterate through all neighbors of i
-    for (auto nei : adj[i]) {
-      if (permuted_indices[nei] < my_priority) {
-        ++count_nbrs_before_me;
-      }
-    }
-    priority_list[i] = count_nbrs_before_me;
-  }
-
-  // compute the initial root
-  std::vector<int> roots;
-  auto zero_f = [&](int i) { return priority_list[i] == 0; };
-
-  // #pragma omp parallel for
-  for(int i = 0; i < num_vertices; ++i) {
-    if (zero_f(i)) {
-      roots.emplace_back(i);
-    }
-  }
-
-  // recursively compute the MIS
-  std::vector<bool> is_mis(num_vertices, false);
-  int finished = 0;
-  int round = 0;
-
-  auto start = std::chrono::high_resolution_clock::now();
-  while (finished != num_vertices){
-    // while(round < 10){
-    std::vector<int> removed;
-    // add roots to the MIS, and remove the nbrs of roots from the graph
-    // #pragma omp parallel for 
-    for (auto root: roots) {
-      is_mis[root] = true;
-      for (auto nei : adj[root]) {
-        if (priority_list[nei] > 0) {
-          priority_list[nei] = 0;
-          removed.emplace_back(nei);
-        }
-      }
-    }
-
-    // compute new roots
-    std::vector<int> new_roots;
-    // #pragma omp parallel for 
-    for (auto u : removed) {
-      for (auto v: adj[u]){
-         if ( permuted_indices[v] > permuted_indices[u] ) {
-          priority_list[v]-=1;
-          if (priority_list[v] == 0) {
-            new_roots.emplace_back(v);
-          }
-        }
-      }
-    }
-    
-    finished += roots.size();
-    finished += removed.size();
-          
-    roots = std::move(new_roots);
-    ++round;
-  }
-
-  auto stop = std::chrono::high_resolution_clock::now();
-  auto duration =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
-  std::cout << "[Info] Rounds: " << round << "\n";
-
-  // # pragma omp parallel for 
-  for (int i = 0; i < num_vertices; ++i) {
-    if (is_mis[i]) {
-      mis.emplace_back(i);
-    }
-  }
-
-  return mis;
-}  // End Solver::SequentialRootBasedSolve
-
-std::vector<int> Solver::ParallelRootBasedSolve(
+std::vector<int> Solver::BlellochSolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges) {
   std::vector<int> mis;
@@ -551,7 +356,7 @@ std::vector<int> Solver::ParallelRootBasedSolve(
   }
 
   return mis;
-}  // End Solver::ParallelRootBasedSolve
+}  // End Solver::BlellochSolve
 
 
 }  // namespace luby

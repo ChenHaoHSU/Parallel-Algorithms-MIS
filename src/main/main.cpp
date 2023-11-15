@@ -9,9 +9,7 @@
 #include "src/solver/solver.h"
 
 int main(int argc, char** argv) {
-
-  std::cout << "[Info] Hello, Luby!\n";
-
+  // Parse command-line arguments
   if (argc < 3) {
     std::cout << "Usage: " << argv[0]
       << " [input_file] [output_file] <alogrithm>\n";
@@ -20,8 +18,12 @@ int main(int argc, char** argv) {
   std::string input_filename = argv[1]; 
   std::string output_filename = argv[2];
   std::string algorithm = "SeqGreedy";
+  int num_threads = 1;
   if (argc > 3) {
     algorithm = argv[3]; 
+  }
+  if (argc > 4) {
+    num_threads = std::atoi(argv[4]);
   }
 
   // Database
@@ -38,7 +40,8 @@ int main(int argc, char** argv) {
 
   // Run solver
   luby::Solver solver;
-  std::vector<int> mis = solver.Run(num_vertices, edges, algorithm);
+  std::vector<int> mis = solver.Run(
+      num_vertices, edges, algorithm, num_threads);
 
   // Check MIS
   luby::Checker checker;
