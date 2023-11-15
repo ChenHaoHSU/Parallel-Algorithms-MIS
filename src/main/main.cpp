@@ -10,20 +10,19 @@
 
 int main(int argc, char** argv) {
   // Parse command-line arguments
-  if (argc < 3) {
+  if (argc < 2) {
     std::cout << "Usage: " << argv[0]
-      << " [input_file] [output_file] <alogrithm>\n";
+      << " [input_file] <alogrithm> <num_threads>\n";
     return 1;
   }
   std::string input_filename = argv[1]; 
-  std::string output_filename = argv[2];
   std::string algorithm = "SeqGreedy";
   int num_threads = 1;
-  if (argc > 3) {
-    algorithm = argv[3]; 
+  if (argc > 2) {
+    algorithm = argv[2];
   }
-  if (argc > 4) {
-    num_threads = std::atoi(argv[4]);
+  if (argc > 3) {
+    num_threads = std::atoi(argv[3]);
   }
 
   // Database
@@ -31,7 +30,7 @@ int main(int argc, char** argv) {
   std::vector<std::pair<int, int>> edges;
 
   // Read database from file
-  luby::Parser parser;
+  mis::Parser parser;
   if (!parser.Read(input_filename, num_vertices, edges)) {
     std::cerr << "[Error] Fail to read "
         << std::quoted(input_filename) << ".\n";
@@ -39,12 +38,12 @@ int main(int argc, char** argv) {
   }
 
   // Run solver
-  luby::Solver solver;
+  mis::Solver solver;
   std::vector<int> mis = solver.Run(
       num_vertices, edges, algorithm, num_threads);
 
   // Check MIS
-  luby::Checker checker;
+  mis::Checker checker;
   if (!checker.Run(num_vertices, edges, mis)) {
     std::cout << "[Error] MIS check: Fail...\n";
   } else {

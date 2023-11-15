@@ -11,9 +11,7 @@ set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # CXX flags
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fPIC -fopenmp -lpthread")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-inline ")
-set(CMAKE_CXX_FLAGS_PROFILE "-O3 -pg -Winline")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 ##################################################
 #        Source Code                             #

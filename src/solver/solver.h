@@ -1,10 +1,10 @@
-#ifndef LUBY_SOLVER_H_
-#define LUBY_SOLVER_H_
+#ifndef MIS_SOLVER_H_
+#define MIS_SOLVER_H_
 
 #include <iostream>
 #include <vector>
 
-namespace luby {
+namespace mis {
 
 class Solver {
  public:
@@ -31,7 +31,7 @@ class Solver {
 
 };  // class Solver
 
-}  // namespace luby
+}  // namespace mis 
 
-#endif  // LUBY_SOLVER_H_
+#endif  // MIS_SOLVER_H_
 

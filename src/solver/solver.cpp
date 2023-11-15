@@ -12,7 +12,7 @@
 
 #include "src/solver/solver.h"
 
-namespace luby {
+namespace mis {
 
 std::vector<int> Solver::Run(int num_vertices,
                              const std::vector<std::pair<int, int>>& edges,
@@ -359,5 +359,5 @@ std::vector<int> Solver::BlellochSolve(
 }  // End Solver::BlellochSolve
 
 
-}  // namespace luby
+}  // namespace mis
 

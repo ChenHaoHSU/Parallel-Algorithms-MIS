@@ -1,10 +1,10 @@
-#ifndef LUBY_CHECKER_H_
-#define LUBY_CHECKER_H_
+#ifndef MIS_CHECKER_H_
+#define MIS_CHECKER_H_
 
 #include <iostream>
 #include <vector>
 
-namespace luby {
+namespace mis {
 
 class Checker {
  public:
@@ -24,7 +24,7 @@ class Checker {
 
 };  // class Checker
 
-}  // namespace luby
+}  // namespace mis
 
-#endif  // LUBY_CHECKER_H_
+#endif  // MIS_CHECKER_H_
 

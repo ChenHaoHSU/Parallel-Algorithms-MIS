@@ -5,7 +5,7 @@
 
 #include "src/checker/checker.h"
 
-namespace luby {
+namespace mis {
 
 bool Checker::Run(
     int num_vertices,
@@ -92,5 +92,5 @@ bool Checker::CheckIsMaximal(
   return valid;
 }  // End Checker::CheckIsMaximal
 
-}  // namespace luby
+}  // namespace mis 
 

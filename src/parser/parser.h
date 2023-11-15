@@ -1,10 +1,10 @@
-#ifndef LUBY_PARSER_H_
-#define LUBY_PARSER_H_
+#ifndef MIS_PARSER_H_
+#define MIS_PARSER_H_
 
 #include <iostream>
 #include <vector>
 
-namespace luby {
+namespace mis {
 
 class Parser {
  public:
@@ -18,7 +18,7 @@ class Parser {
 
 };  // class Parser
 
-}  // namespace luby
+}  // namespace mis
 
-#endif  // LUBY_PARSER_H_
+#endif  // MIS_PARSER_H_
 
