@@ -56,7 +56,7 @@ std::vector<int> Solver::SequentialGreedySolve(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges) {
   
-  auto start = std::chrono::high_resolution_clock::now();
+  auto start1 = std::chrono::high_resolution_clock::now();
   
   // Build adjaceny list
   std::vector<std::vector<int>> adj(num_vertices);
@@ -76,6 +76,8 @@ std::vector<int> Solver::SequentialGreedySolve(
                      //return adj[lhs].size() < adj[rhs].size();
                    //});
 
+  auto start2 = std::chrono::high_resolution_clock::now();
+
   // Iterate through all vertices in the sorted order
   std::vector<bool> marked(num_vertices, false);
   for (int i : sorted_indices) {
@@ -93,9 +95,12 @@ std::vector<int> Solver::SequentialGreedySolve(
   }
 
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
+  auto duration1 =
+    std::chrono::duration_cast<std::chrono::microseconds>(stop - start1);
+  auto duration2 =
+    std::chrono::duration_cast<std::chrono::microseconds>(stop - start2);
+  std::cout << "[Info] Runtime1: " << duration1.count() << " us.\n";
+  std::cout << "[Info] Runtime2: " << duration2.count() << " us.\n";
   
   return mis;
 }  // End Solver::SequentialGreedySolve

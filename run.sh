@@ -5,5 +5,5 @@ do
   echo "========================"
   echo "= Input $i"
   echo "========================"
-  ./bin/mis input/input$i.txt 
+  ./bin/mis input/input$i.txt
 done
