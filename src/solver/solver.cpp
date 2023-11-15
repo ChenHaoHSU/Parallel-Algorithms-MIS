@@ -150,7 +150,7 @@ std::vector<int> Solver::LubySolve(
     // foreach v in V(G)
     #pragma omp parallel for default(shared)
     for (int v = 0; v < num_vertices; ++v) {
-      if (G.at(v)) {
+      if (G[v]) {
         if (deg[v] == 0) {
           X[v] = iteration;
         } else {
