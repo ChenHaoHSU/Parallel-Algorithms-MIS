@@ -1,6 +1,6 @@
 make clean
 make
-for i in {1..10}
+for i in {1..8}
 do
   echo "========================"
   echo "= Input $i"
