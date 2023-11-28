@@ -13,6 +13,12 @@ int main(int argc, char** argv) {
   if (argc < 2) {
     std::cout << "Usage: " << argv[0]
       << " [input_file] <alogrithm> <num_threads>\n";
+    std::cout << "Example: " << argv[0]
+      << " input.txt\n";
+    std::cout << "Example: " << argv[0]
+      << " input.txt Luby 32\n";
+    std::cout << "Example: " << argv[0]
+      << " input.txt Blelloch 32\n";
     return 1;
   }
   std::string input_filename = argv[1]; 
