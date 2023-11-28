@@ -56,7 +56,7 @@ std::vector<int> Solver::SequentialGreedySolve(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges) {
   
-  auto start1 = std::chrono::high_resolution_clock::now();
+  auto start = std::chrono::high_resolution_clock::now();
   
   // Build adjaceny list
   std::vector<std::vector<int>> adj(num_vertices);
@@ -76,8 +76,6 @@ std::vector<int> Solver::SequentialGreedySolve(
                      //return adj[lhs].size() < adj[rhs].size();
                    //});
 
-  auto start2 = std::chrono::high_resolution_clock::now();
-
   // Iterate through all vertices in the sorted order
   std::vector<bool> marked(num_vertices, false);
   for (int i : sorted_indices) {
@@ -95,12 +93,9 @@ std::vector<int> Solver::SequentialGreedySolve(
   }
 
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration1 =
-    std::chrono::duration_cast<std::chrono::microseconds>(stop - start1);
-  auto duration2 =
-    std::chrono::duration_cast<std::chrono::microseconds>(stop - start2);
-  std::cout << "[Info] Runtime1: " << duration1.count() << " us.\n";
-  std::cout << "[Info] Runtime2: " << duration2.count() << " us.\n";
+  auto duration =
+    std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+  std::cout << "[Info] Runtime1: " << duration.count() << " us.\n";
   
   return mis;
 }  // End Solver::SequentialGreedySolve
@@ -108,7 +103,7 @@ std::vector<int> Solver::SequentialGreedySolve(
 std::vector<int> Solver::LubySolve(
     int num_vertices,
     const std::vector<std::pair<int, int>>& edges) {
-  auto start1 = std::chrono::high_resolution_clock::now();
+  auto start = std::chrono::high_resolution_clock::now();
 
   // Status vector (true if in MIS)
   std::vector<bool> S(num_vertices, false);
@@ -140,8 +135,6 @@ std::vector<int> Solver::LubySolve(
   // Luby's algorithm starts here
   int iteration = 0;
   bool done = false;
-
-  auto start2 = std::chrono::high_resolution_clock::now();
 
   while (!done) {
      ++iteration;
@@ -231,12 +224,9 @@ std::vector<int> Solver::LubySolve(
   }
   
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration1 =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start1);
-  auto duration2 =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start2);
-  std::cout << "[Info] Runtime1: " << duration1.count() << " ms.\n";
-  std::cout << "[Info] Runtime2: " << duration2.count() << " ms.\n";
+  auto duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
   std::cout << "[Info] Iteration: " << iteration << "\n";
 
   // Collect MIS from status
@@ -252,7 +242,7 @@ std::vector<int> Solver::LubySolve(
 std::vector<int> Solver::BlellochSolve(
       int num_vertices,
       const std::vector<std::pair<int, int>>& edges) {
-  auto start1 = std::chrono::high_resolution_clock::now();
+  auto start = std::chrono::high_resolution_clock::now();
 
   std::vector<int> priority_list(num_vertices);
   std::vector<int> permuted_indices(num_vertices);  
@@ -299,8 +289,6 @@ std::vector<int> Solver::BlellochSolve(
   // recursively compute the MIS
   std::vector<bool> is_mis(num_vertices, false);
 
-  auto start2 = std::chrono::high_resolution_clock::now();
-  
   int iteration = 0;
   bool done = false;
   while (!done){
@@ -354,12 +342,9 @@ std::vector<int> Solver::BlellochSolve(
   }
   
   auto stop = std::chrono::high_resolution_clock::now();
-  auto duration1 =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start1);
-  auto duration2 =
-    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start2);
-  std::cout << "[Info] Runtime1: " << duration1.count() << " ms.\n";
-  std::cout << "[Info] Runtime2: " << duration2.count() << " ms.\n";
+  auto duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+  std::cout << "[Info] Runtime: " << duration.count() << " ms.\n";
   std::cout << "[Info] Iterations: " << iteration << "\n";
 
   // Collect MIS from status
